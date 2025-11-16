@@ -28,4 +28,3 @@ temperature = get_weather(lat, lon)
 print(f"The current temperature in {place} is {temperature}°C.")
 print("If you want to check another place!")
 
-print("Thank you")
