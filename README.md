@@ -20,3 +20,11 @@
 -Type a place name
 -See the current temperature
 -Choose yes to check another place or no to exit
+
+----------------------------------------------------------
+
+
+Need any support, Contact on Instagram.
+
+
+Thankyou..
