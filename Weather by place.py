@@ -1,7 +1,7 @@
 import requests
 
 
-#Convert place name to latitude & longitude
+#Convert place name to latitude & longitude---
 def get_location(place_name):
     location_url = f"https://nominatim.openstreetmap.org/search?format=json&q={place_name}"
     headers = {"User-Agent": "PIX AI"}
@@ -28,3 +28,4 @@ temperature = get_weather(lat, lon)
 print(f"The current temperature in {place} is {temperature}°C.")
 print("If you want to check another place!")
 
+print("Thank you")
