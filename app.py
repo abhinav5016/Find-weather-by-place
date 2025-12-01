@@ -1,62 +1,64 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, render_template_string
 import requests
 
 app = Flask(__name__)
 
 # Convert place name to latitude & longitude
 def get_location(place_name):
-    location_url = f"https://nominatim.openstreetmap.org/search?format=json&q={place_name}"
-    headers = {"User-Agent": "PIX AI"}
-    response = requests.get(location_url, headers=headers)
+    url = f"https://nominatim.openstreetmap.org/search?format=json&q={place_name}"
+    headers = {"User-Agent": "Weather-Web-App"}
+    response = requests.get(url, headers=headers)
     data = response.json()
-
     if not data:
         return None, None
-
     return data[0]["lat"], data[0]["lon"]
 
-# Get weather information using latitude & longitude
-def get_weather(latitude, longitude):
-    weather_url = (
-        f"https://api.open-meteo.com/v1/forecast?"
-        f"latitude={latitude}&longitude={longitude}&current=temperature_2m,wind_speed_10m"
-    )
-    response = requests.get(weather_url)
+# Get weather by lat/lon
+def get_weather(lat, lon):
+    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m"
+    response = requests.get(url)
     data = response.json()
-
-    if "current" not in data or "temperature_2m" not in data["current"]:
+    if "current" not in data:
         return None
+    return data["current"]["temperature_2m"]
 
-    return data["current"]["temperature_2m"], data["current"].get("wind_speed_10m")
+# Web UI
+HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+<title>Weather App</title>
+</head>
+<body style="font-family: Arial; text-align: center;">
+<h2>Weather Finder</h2>
+<form method="POST">
+    <input type="text" name="place" placeholder="Enter place">
+    <button type="submit">Get Weather</button>
+</form>
 
-# Home route
-@app.route("/")
-def home():
-    return jsonify({"status": "running", "message": "Weather API online"})
+{% if result %}
+<h3>{{ result }}</h3>
+{% endif %}
+</body>
+</html>
+"""
 
-# Weather route
-@app.route("/weather")
-def weather():
-    place = request.args.get("place")
-    if not place:
-        return jsonify({"error": "place parameter required"}), 400
+@app.route("/", methods=["GET", "POST"])
+def index():
+    result = None
+    if request.method == "POST":
+        place = request.form.get("place")
+        lat, lon = get_location(place)
+        if lat is None:
+            result = "Invalid place. Try again."
+        else:
+            temp = get_weather(lat, lon)
+            if temp is None:
+                result = "Weather data not available."
+            else:
+                result = f"The current temperature in {place} is {temp}°C."
 
-    lat, lon = get_location(place)
-    if not lat:
-        return jsonify({"error": "Invalid place"}), 404
-
-    temperature, wind = get_weather(lat, lon)
-
-    if temperature is None:
-        return jsonify({"error": "Weather data not available"}), 500
-
-    return jsonify({
-        "place": place,
-        "temperature_c": temperature,
-        "wind_speed": wind,
-        "latitude": lat,
-        "longitude": lon
-    })
+    return render_template_string(HTML, result=result)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run()
