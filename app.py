@@ -23,26 +23,6 @@ def get_weather(lat, lon):
     return data["current"]["temperature_2m"]
 
 # Web UI
-HTML = """
-<!DOCTYPE html>
-<html>
-<head>
-<title>Weather App</title>
-<p style="font-size:14px; color:gray;">Created by Abhinav</p>
-</head>
-<body style="font-family: Arial; text-align: center;">
-<h2>Weather Finder</h2>
-<form method="POST">
-    <input type="text" name="place" placeholder="Enter place">
-    <button type="submit">Get Weather</button>
-</form>
-
-{% if result %}
-<h3>{{ result }}</h3>
-{% endif %}
-</body>
-</html>
-"""
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -59,7 +39,7 @@ def index():
             else:
                 result = f"The current temperature in {place} is {temp}°C."
 
-    return render_template_string(HTML, result=result)
+    return render_template_string("index.html", result=result)
 
 if __name__ == "__main__":
     app.run()
