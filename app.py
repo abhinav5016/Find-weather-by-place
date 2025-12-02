@@ -28,6 +28,7 @@ HTML = """
 <html>
 <head>
 <title>Weather App</title>
+<p style="font-size:14px; color:gray;">Created by Abhinav</p>
 </head>
 <body style="font-family: Arial; text-align: center;">
 <h2>Weather Finder</h2>
