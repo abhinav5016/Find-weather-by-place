@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template
 import requests
 
 app = Flask(__name__)
@@ -39,7 +39,7 @@ def index():
             else:
                 result = f"The current temperature in {place} is {temp}°C."
 
-    return render_template_string("index.html", result=result)
+    return render_template("index.html", result=result)
 
 if __name__ == "__main__":
     app.run()
