@@ -4,54 +4,63 @@ import logging
 
 app = Flask(__name__)
 
-# Enable logging (shows in Render logs)
 logging.basicConfig(level=logging.INFO)
 
 # Convert place name to latitude & longitude
 def get_location(place_name):
-    try:
-        url = f"https://nominatim.openstreetmap.org/search?format=json&q={place_name}"
-        headers = {"User-Agent": "Mozilla/5.0"}
-        response = requests.get(url, headers=headers)
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {
+        "format": "json",
+        "q": place_name,
+        "limit": 1
+    }
+    headers = {
+        "User-Agent": "WeatherApp-Abhinav (your-email@example.com)"
+    }
 
-        logging.info("Location API response: %s",response.text)
-        
-        data = response.json()
-        
-        if not data:
-            return None, None
-        
-        return data[0]["lat"], data[0]["lon"]
-    except Exception as e:
-        logging.error("Location error: %s", e)
+    logging.info(f"Fetching location for: {place_name}")
+    response = requests.get(url, params=params, headers=headers)
+
+    if response.status_code != 200:
+        logging.error(f"Nominatim error: {response.status_code}")
         return None, None
+
+    data = response.json()
+    if not data:
+        return None, None
+
+    return data[0]["lat"], data[0]["lon"]
 
 # Get weather by lat/lon
 def get_weather(lat, lon):
-    try:
-        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
-        response = requests.get(url)
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "current": "temperature_2m"
+    }
 
-        logging.info("Weather API response: %s", response.text)
+    logging.info(f"Fetching weather for: {lat}, {lon}")
+    response = requests.get(url, params=params)
 
-        data = response.json()
-
-        if "current_weather" not in data:
-            return None
-
-        return data["current_weather"]["temperature"]
-
-    except Exception as e:
-        logging.error("Weather error: %s", e)
+    if response.status_code != 200:
+        logging.error("Open-Meteo error")
         return None
 
+    data = response.json()
+    if "current" not in data:
+        return None
+
+    return data["current"]["temperature_2m"]
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     result = None
+
     if request.method == "POST":
         place = request.form.get("place")
         lat, lon = get_location(place)
+
         if lat is None:
             result = "Invalid place. Try again."
         else:
